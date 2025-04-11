@@ -1,14 +1,21 @@
 {
-  "name": "snapsnitch-ai",
+  "name": "screenshot-ai",
   "version": "1.0.0",
-  "main": "main.js",
+  "main": "src/main/main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "server": "node server/server.js",
+    "dev": "concurrently \"npm run start\" \"npm run server\""
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "Desktop app for SnapSnitch AI",
+  "keywords": [
+    "electron",
+    "screenshot",
+    "ai",
+    "ocr"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "description": "AI-powered screenshot analysis tool",
   "dependencies": {
     "dotenv": "^16.4.7",
     "electron-localshortcut": "^3.2.1",
@@ -17,6 +24,7 @@
     "ws": "^8.18.1"
   },
   "devDependencies": {
-    "electron": "^35.1.4"
+    "electron": "^35.1.4",
+    "concurrently": "^8.0.1"
   }
 }

@@ -1,7 +1,12 @@
+/**
+ * WebSocket server
+ *
+ * Handles WebSocket connections for the screenshot-ai application
+ */
 const WebSocket = require("ws");
 
-const wss = new WebSocket.Server({ port: 3001 });
-console.log("🔌 WebSocket server running on ws://localhost:3001");
+const wss = new WebSocket.Server({ port: 3030 });
+console.log("🔌 WebSocket server running on ws://localhost:3030");
 
 // Track connected clients
 const clients = new Set();
