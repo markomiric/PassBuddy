@@ -1,0 +1,25 @@
+{
+  "name": "websocket-relay-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [
+    "websocket",
+    "relay",
+    "server"
+  ],
+  "author": "",
+  "license": "ISC",
+  "description": "WebSocket relay server for Screenshot AI",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "uuid": "^9.0.1",
+    "ws": "^8.18.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
