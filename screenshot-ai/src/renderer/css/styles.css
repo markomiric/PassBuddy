@@ -75,9 +75,9 @@ body {
   font-family: var(--font-sans);
   padding: 0;
   margin: 0;
-  background-color: var(--background-color);
+  background-color: transparent !important;
   color: var(--text-color);
-  transition: background-color var(--transition-normal), color var(--transition-normal);
+  transition: color var(--transition-normal);
   line-height: 1.6;
   font-size: 15px;
   -webkit-font-smoothing: antialiased;
@@ -100,6 +100,12 @@ input, button, textarea, select, a, .btn, .btn-icon, .content-area {
   height: 32px;
   z-index: 9999;
   -webkit-app-region: no-drag;
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+}
+
+.window-controls:hover {
+  opacity: 0.8;
 }
 
 .window-control-button {
@@ -129,6 +135,7 @@ input, button, textarea, select, a, .btn, .btn-icon, .content-area {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  background-color: transparent !important;
 }
 
 .container {
@@ -138,6 +145,7 @@ input, button, textarea, select, a, .btn, .btn-icon, .content-area {
   margin: 0 auto;
   padding: var(--space-6);
   box-sizing: border-box;
+  background-color: transparent !important;
 }
 
 h3 {
@@ -227,7 +235,7 @@ h3 {
 .instructions {
   margin: var(--space-6) 0;
   padding: var(--space-4) var(--space-6);
-  background-color: var(--info-bg);
+  background-color: rgba(0, 0, 0, 0.7);
   border-left: 4px solid var(--info-border);
   border-radius: var(--radius-md);
   display: flex;
@@ -235,6 +243,9 @@ h3 {
   gap: var(--space-3);
   font-size: 0.95rem;
   position: relative;
+  color: white;
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
 }
 
 .instructions p {
@@ -293,15 +304,17 @@ h3 {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.5);
   z-index: 1000;
   display: flex;
   justify-content: center;
   align-items: center;
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
 }
 
 .prompt-panel {
-  background-color: var(--card-bg);
+  background-color: rgba(30, 30, 30, 0.85);
   border-radius: var(--radius-lg);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   width: 90%;
@@ -309,6 +322,8 @@ h3 {
   max-height: 90vh;
   overflow-y: auto;
   padding: var(--space-6);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .prompt-panel-header {
@@ -321,7 +336,7 @@ h3 {
 .prompt-panel-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--text-color);
+  color: white;
 }
 
 .prompt-panel-content {
@@ -386,9 +401,10 @@ h3 {
   box-shadow: none !important;
 }
 
-/* Ensure text is clearly visible */
+/* Ensure text is clearly visible with text shadow for better readability on any background */
 #gpt-response p, #gpt-response span, #gpt-response div, #gpt-response li, #gpt-response code, #gpt-response pre {
-  color: var(--text-color) !important;
+  color: white !important;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.8) !important;
 }
 
 .prompt-textarea {

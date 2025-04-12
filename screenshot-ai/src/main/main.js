@@ -168,14 +168,14 @@ function createMainWindow(userPrefs) {
       // Explicitly allow microphone access
       permissions: ["microphone"],
     },
-    backgroundColor: userPrefs.darkMode ? "#1e1e1e" : "#f5f5f5",
+    backgroundColor: "#00000000", // Transparent background
     show: false, // Don't show until ready-to-show
     alwaysOnTop: userPrefs.alwaysOnTop, // Use user preference for alwaysOnTop
     // Additional options to help prevent screen capture
     paintWhenInitiallyHidden: true,
     titleBarStyle: "hidden",
     frame: false, // Frameless window is harder to identify in screen sharing
-    transparent: false, // Transparency can sometimes cause issues with screen capture
+    transparent: true, // Enable transparency for stealth mode
     // Set content protection from the start (always in stealth mode)
     contentProtection: true,
     // Type of window affects how it's treated by the OS

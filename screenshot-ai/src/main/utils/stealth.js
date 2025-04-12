@@ -5,6 +5,9 @@
  */
 const { loadUserPreferences } = require("../services/preferences");
 
+// Store CSS key for later removal if needed
+let stealthModeCSSKey;
+
 /**
  * Enable stealth mode for the application window
  * @param {BrowserWindow} mainWindow - The main application window
@@ -32,7 +35,7 @@ function enableStealthMode(mainWindow) {
   // Set alwaysOnTop based on user preference, but use screen-saver level
   mainWindow.setAlwaysOnTop(userPrefs.alwaysOnTop, "screen-saver");
   mainWindow.setSkipTaskbar(false); // Show in taskbar for better visibility
-  mainWindow.setOpacity(0.5);
+  mainWindow.setOpacity(1.0); // Full opacity for the window itself, CSS will handle transparency
 
   // Set window type to utility on macOS to further reduce visibility
   if (process.platform === "darwin") {
@@ -44,12 +47,18 @@ function enableStealthMode(mainWindow) {
   // Make sure mouse events are NOT ignored
   mainWindow.setIgnoreMouseEvents(false);
 
-  // Apply CSS to make the window more visible with a subtle border
+  // Apply CSS to make the window transparent
   mainWindow.webContents
     .insertCSS(
       `
     body {
-      box-shadow: 0 0 0 2px rgba(0, 128, 0, 0.5) !important;
+      background-color: transparent !important;
+    }
+    .app-container {
+      background-color: transparent !important;
+    }
+    .container {
+      background-color: transparent !important;
     }
   `
     )
