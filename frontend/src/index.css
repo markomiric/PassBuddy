@@ -8,7 +8,7 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
+  color-scheme: dark;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -32,6 +32,8 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  background-color: #000000; /* pure black */
+  color: #f3f4f6; /* gray-100 */
 }
 
 /* Improve text rendering on WebKit */
@@ -42,8 +44,8 @@ body {
 
 /* Ensure proper contrast for selection */
 ::selection {
-  background-color: #3b82f6;
-  color: white;
+  background-color: #4b5563; /* gray-600 */
+  color: #f3f4f6; /* gray-100 */
 }
 
 /* Reduce animation for users who prefer reduced motion */

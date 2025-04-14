@@ -4,6 +4,8 @@ body {
   padding: 0;
   min-height: 100vh;
   font-family: 'Roboto Condensed', 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  background-color: #1e1e1e;
+  color: #f3f4f6; /* gray-100 */
 }
 
 #root {
@@ -21,8 +23,8 @@ body {
   overflow: hidden;
   font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
   background-color: #1e1e1e;
-  border: 1px solid #333;
-  font-size: 0.9rem;
+  font-size: 1rem;
+  padding: 1rem;
 }
 
 .code-language {
@@ -45,7 +47,7 @@ body {
 /* MathJax styling */
 .MathJax {
   outline: none;
-  color: #e5e7eb !important;
+  color: #f3f4f6 !important;
 }
 
 /* Add spacing for display math */
@@ -72,12 +74,13 @@ body {
 .prose {
   max-width: none !important;
   font-family: 'Roboto Condensed', 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif !important;
-  font-size: 0.95rem !important;
-  line-height: 1.4 !important;
+  font-size: 1rem !important;
+  line-height: 1.5 !important;
   background-color: transparent !important;
   padding: 0 !important;
   margin: 0 !important;
   min-height: 100vh !important;
+  color: #f3f4f6 !important;
 }
 
 .prose p {
