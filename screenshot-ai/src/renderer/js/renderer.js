@@ -174,6 +174,25 @@ function setupFileUpload() {
             window.fileModule.setFileContextActive(true);
           }
 
+          // Set the file upload prompt
+          const fileUploadPrompt = `You are an advanced AI assistant designed to perform at the highest level on academic and professional tests. You must answer user questions as accurately and thoroughly as possible, using both your own knowledge and the content provided in an uploaded file. When relevant, ground your answers in the file, but feel free to enhance them with your broader knowledge.
+
+When answering:
+- Prioritize accuracy and clarity.
+- Cite the file content if it directly supports your answer.
+- If the file content contradicts known facts, explain the discrepancy.
+- If the file is unrelated to the question, fall back on your own knowledge.
+
+Always aim to provide the most complete and insightful answer possible.`;
+
+          // Update the prompt textarea
+          const promptTextarea = document.getElementById("gpt-prompt");
+          if (promptTextarea) {
+            promptTextarea.value = fileUploadPrompt;
+            // Save to localStorage
+            localStorage.setItem("savedPrompt", fileUploadPrompt);
+          }
+
           // Show notification
           window.uiModule.showNotification(
             `File loaded: ${fileData.fileName}`,

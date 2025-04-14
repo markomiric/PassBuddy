@@ -251,8 +251,29 @@ function setupEventListeners() {
 
   if (editPromptToggle && promptTextarea) {
     editPromptToggle.addEventListener("click", () => {
-      // Reset to default prompt
-      const defaultPrompt = `You are an expert software engineering lecturer responding to student questions or exam problems.
+      // Check if a file is loaded to determine which default prompt to use
+      const fileData =
+        window.fileModule && window.fileModule.getCurrentFile
+          ? window.fileModule.getCurrentFile()
+          : null;
+      const isFileLoaded = fileData && fileData.fileName;
+
+      let defaultPrompt;
+
+      if (isFileLoaded) {
+        // Use file upload default prompt
+        defaultPrompt = `You are an advanced AI assistant designed to perform at the highest level on academic and professional tests. You must answer user questions as accurately and thoroughly as possible, using both your own knowledge and the content provided in an uploaded file. When relevant, ground your answers in the file, but feel free to enhance them with your broader knowledge.
+
+When answering:
+- Prioritize accuracy and clarity.
+- Cite the file content if it directly supports your answer.
+- If the file content contradicts known facts, explain the discrepancy.
+- If the file is unrelated to the question, fall back on your own knowledge.
+
+Always aim to provide the most complete and insightful answer possible.`;
+      } else {
+        // Use standard default prompt
+        defaultPrompt = `You are an expert software engineering lecturer responding to student questions or exam problems.
 
 When given text from screenshots:
 1. Directly provide concise, accurate answers - no theoretical explanations unless specifically requested
@@ -263,9 +284,10 @@ When given text from screenshots:
 6. Be authoritative and precise - like an expert lecturer giving model answers
 
 Do not ask theoretical questions back to the user or provide lengthy explanations.`;
+      }
 
       promptTextarea.value = defaultPrompt;
-      localStorage.removeItem("savedPrompt");
+      localStorage.setItem("savedPrompt", defaultPrompt);
 
       // Show a brief success message
       showToast(editPromptToggle, "Default prompt restored");
@@ -578,7 +600,8 @@ function resetApplication() {
 
 // Set the default GPT prompt
 function setDefaultPrompt() {
-  const defaultPrompt = `You are an expert software engineering lecturer responding to student questions or exam problems.
+  // Standard default prompt for screenshots
+  const standardDefaultPrompt = `You are an expert software engineering lecturer responding to student questions or exam problems.
 
 When given text from screenshots:
 1. Directly provide concise, accurate answers - no theoretical explanations unless specifically requested
@@ -590,14 +613,39 @@ When given text from screenshots:
 
 Do not ask theoretical questions back to the user or provide lengthy explanations.`;
 
+  // File upload default prompt
+  const fileUploadDefaultPrompt = `You are an advanced AI assistant designed to perform at the highest level on academic and professional tests. You must answer user questions as accurately and thoroughly as possible, using both your own knowledge and the content provided in an uploaded file. When relevant, ground your answers in the file, but feel free to enhance them with your broader knowledge.
+
+When answering:
+- Prioritize accuracy and clarity.
+- Cite the file content if it directly supports your answer.
+- If the file content contradicts known facts, explain the discrepancy.
+- If the file is unrelated to the question, fall back on your own knowledge.
+
+Always aim to provide the most complete and insightful answer possible.`;
+
   const promptTextarea = document.getElementById("gpt-prompt");
   if (promptTextarea) {
     // Check if there's a saved prompt in localStorage
     const savedPrompt = localStorage.getItem("savedPrompt");
+
+    // Check if a file is loaded
+    const fileData =
+      window.fileModule && window.fileModule.getCurrentFile
+        ? window.fileModule.getCurrentFile()
+        : null;
+    const isFileLoaded = fileData && fileData.fileName;
+
     if (savedPrompt) {
       promptTextarea.value = savedPrompt;
+    } else if (isFileLoaded) {
+      // Use file upload prompt if a file is loaded
+      promptTextarea.value = fileUploadDefaultPrompt;
+      // Save this prompt to localStorage
+      localStorage.setItem("savedPrompt", fileUploadDefaultPrompt);
     } else {
-      promptTextarea.value = defaultPrompt;
+      // Use standard prompt for screenshots
+      promptTextarea.value = standardDefaultPrompt;
     }
   }
 }
