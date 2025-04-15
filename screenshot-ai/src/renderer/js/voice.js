@@ -334,28 +334,38 @@ async function transcribeAudio(audioChunks) {
   // Create a blob from the audio chunks
   const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
 
-  // Get API key from main process
+  // Get API key from main process - always use OpenAI for transcription
   const apiKey = await window.electronAPI.getOpenAIKey();
   if (!apiKey) {
     // Show error and prompt for API key
     const gptResponse = document.getElementById("gpt-response");
     if (gptResponse) {
       gptResponse.innerHTML =
-        "<div class='error'>OpenAI API key not found. Please enter your API key.</div>";
+        "<div class='error'>OpenAI API key not found. Please enter your API key for voice transcription.</div>";
     }
 
-    // Show API key dialog
-    const newApiKey = await window.uiModule.showApiKeyDialog("");
+    // Show API settings dialog
+    const openaiKey = (await window.electronAPI.getOpenAIKey()) || "";
+    const deepseekKey = (await window.electronAPI.getDeepSeekKey()) || "";
+    const geminiKey = (await window.electronAPI.getGeminiKey()) || "";
+    const currentModel = window.apiSettingsModule.getCurrentModel();
 
-    // If user provided an API key, save it and continue
-    if (newApiKey) {
-      await window.electronAPI.saveOpenAIKey(newApiKey);
+    const result = await window.apiSettingsModule.showApiSettingsDialog(
+      openaiKey,
+      deepseekKey,
+      geminiKey,
+      currentModel
+    );
+
+    // If user provided settings, save them and continue
+    if (result && result.openaiKey) {
+      await window.electronAPI.saveOpenAIKey(result.openaiKey);
       console.log("API key saved successfully");
       // Continue with the new key
       return transcribeAudio(audioChunks); // Retry with the new key
     } else {
-      // User canceled, throw error
-      throw new Error("API key is required to use this feature.");
+      // User canceled or didn't provide OpenAI key, throw error
+      throw new Error("OpenAI API key is required for voice transcription.");
     }
   }
 

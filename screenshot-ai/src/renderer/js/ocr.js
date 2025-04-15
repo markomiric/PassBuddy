@@ -245,9 +245,11 @@ async function sendToGPT(text) {
       // Show API settings dialog
       const openaiKey = (await window.electronAPI.getOpenAIKey()) || "";
       const deepseekKey = (await window.electronAPI.getDeepSeekKey()) || "";
+      const geminiKey = (await window.electronAPI.getGeminiKey()) || "";
       const result = await window.apiSettingsModule.showApiSettingsDialog(
         openaiKey,
         deepseekKey,
+        geminiKey,
         selectedModel
       );
 
@@ -258,6 +260,9 @@ async function sendToGPT(text) {
         }
         if (result.deepseekKey) {
           await window.electronAPI.saveDeepSeekKey(result.deepseekKey);
+        }
+        if (result.geminiKey) {
+          await window.electronAPI.saveGeminiKey(result.geminiKey);
         }
         if (result.selectedModel) {
           await window.electronAPI.saveSelectedModel(result.selectedModel);
@@ -282,9 +287,11 @@ async function sendToGPT(text) {
       // Show API settings dialog
       const openaiKey = (await window.electronAPI.getOpenAIKey()) || "";
       const deepseekKey = (await window.electronAPI.getDeepSeekKey()) || "";
+      const geminiKey = (await window.electronAPI.getGeminiKey()) || "";
       const result = await window.apiSettingsModule.showApiSettingsDialog(
         openaiKey,
         deepseekKey,
+        geminiKey,
         selectedModel
       );
 
@@ -295,6 +302,53 @@ async function sendToGPT(text) {
         }
         if (result.deepseekKey) {
           await window.electronAPI.saveDeepSeekKey(result.deepseekKey);
+        }
+        if (result.geminiKey) {
+          await window.electronAPI.saveGeminiKey(result.geminiKey);
+        }
+        if (result.selectedModel) {
+          await window.electronAPI.saveSelectedModel(result.selectedModel);
+          window.apiSettingsModule.setCurrentModel(result.selectedModel);
+          window.apiSettingsModule.showModelIndicator();
+        }
+        console.log("API settings saved successfully");
+        // Use the new settings
+        return sendToGPT(text); // Retry with the new settings
+      } else {
+        // User canceled, show error
+        showError("API key is required to use this feature.");
+        return;
+      }
+    }
+  } else if (selectedModel === "gemini-2.0-flash") {
+    apiKey = await window.electronAPI.getGeminiKey();
+    if (!apiKey || !apiKey.startsWith("AIza")) {
+      // Show error and prompt for API key
+      showError(
+        "Google Gemini API key not found or invalid. Please enter a valid API key starting with 'AIza'."
+      );
+
+      // Show API settings dialog
+      const openaiKey = (await window.electronAPI.getOpenAIKey()) || "";
+      const deepseekKey = (await window.electronAPI.getDeepSeekKey()) || "";
+      const geminiKey = (await window.electronAPI.getGeminiKey()) || "";
+      const result = await window.apiSettingsModule.showApiSettingsDialog(
+        openaiKey,
+        deepseekKey,
+        geminiKey,
+        selectedModel
+      );
+
+      // If user provided settings, save them and continue
+      if (result) {
+        if (result.openaiKey) {
+          await window.electronAPI.saveOpenAIKey(result.openaiKey);
+        }
+        if (result.deepseekKey) {
+          await window.electronAPI.saveDeepSeekKey(result.deepseekKey);
+        }
+        if (result.geminiKey) {
+          await window.electronAPI.saveGeminiKey(result.geminiKey);
         }
         if (result.selectedModel) {
           await window.electronAPI.saveSelectedModel(result.selectedModel);
@@ -371,20 +425,26 @@ async function sendToGPT(text) {
 
   // Get model configuration
   const modelConfig = await window.electronAPI.getModelConfig();
-  const config = modelConfig[selectedModel] || {
-    baseURL:
-      selectedModel === "gpt-4o"
-        ? "https://api.openai.com"
-        : "https://api.deepseek.com",
-    temperature: 0.3,
-    provider: selectedModel === "gpt-4o" ? "openai" : "deepseek",
-  };
+  console.log(
+    "Model config received from main process:",
+    JSON.stringify(modelConfig, null, 2)
+  );
+  console.log("Selected model:", selectedModel);
+
+  // Make sure we have a valid configuration for the selected model
+  if (!modelConfig[selectedModel]) {
+    showError(`No configuration found for model: ${selectedModel}`);
+    return;
+  }
+
+  const config = modelConfig[selectedModel];
 
   // Determine the appropriate temperature for DeepSeek model based on content
   let temperature = config.temperature;
+  let contentType = null;
   if (selectedModel === "deepseek-chat" && window.contentAnalyzerModule) {
     // Analyze the content to determine the type
-    const contentType = window.contentAnalyzerModule.analyzeContent(text);
+    contentType = window.contentAnalyzerModule.analyzeContent(text);
 
     // Get the recommended temperature based on content type
     if (config.temperatureSettings) {
@@ -406,37 +466,126 @@ async function sendToGPT(text) {
     }
   }
 
-  const body = {
-    model: selectedModel,
-    messages: messages,
-    temperature: temperature,
-  };
-
   console.log(
     `Sending to ${config.provider} with model ${selectedModel}:`,
     messages
   );
 
+  // Debug the config object
+  console.log("Config object:", JSON.stringify(config, null, 2));
+
   try {
-    const apiEndpoint = `${config.baseURL}/v1/chat/completions`;
-    console.log(`Using API endpoint: ${apiEndpoint}`);
+    let gptReply;
 
-    const response = await fetch(apiEndpoint, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
+    console.log(
+      "Provider check:",
+      config.provider,
+      typeof config.provider,
+      (config.provider || "").toLowerCase() === "google"
+    );
+    if ((config.provider || "").toLowerCase() === "google") {
+      console.log("Entering Gemini code path");
+      // Use the Gemini client with the Google GenAI SDK
+      // Extract the user's query (the last message)
+      let userQuery = "";
+      for (let i = messages.length - 1; i >= 0; i--) {
+        if (messages[i].role === "user") {
+          userQuery = messages[i].content;
+          break;
+        }
+      }
+
+      // If we didn't find a user message, use a default
+      if (!userQuery) {
+        userQuery = "Please analyze this text.";
+      }
+
+      try {
+        // Directly use the window.geminiClient object
+        console.log("Checking for window.geminiClient...");
+        if (!window.geminiClient || !window.geminiClient.sendToGemini) {
+          console.error(
+            "window.geminiClient not found or missing sendToGemini function"
+          );
+
+          // Try to dynamically import as a fallback
+          console.log(
+            "Attempting to import Gemini client module as fallback..."
+          );
+          const geminiModule = await import("./gemini-client.js");
+          console.log("Gemini module imported:", geminiModule);
+
+          // Create the window.geminiClient object if it doesn't exist
+          window.geminiClient = window.geminiClient || {};
+          window.geminiClient.sendToGemini = geminiModule.sendToGemini;
+
+          if (!window.geminiClient.sendToGemini) {
+            console.error("Failed to set up window.geminiClient.sendToGemini");
+            throw new Error("Could not initialize Gemini client");
+          }
+        }
+
+        // Call the Gemini API using the client
+        console.log("Calling sendToGemini with:", {
+          apiKey: apiKey
+            ? `${apiKey.substring(0, 4)}...${apiKey.substring(
+                apiKey.length - 4
+              )}`
+            : "undefined",
+          model: selectedModel,
+          queryLength: userQuery ? userQuery.length : 0,
+          temperature: temperature,
+        });
+
+        gptReply = await window.geminiClient.sendToGemini(
+          apiKey,
+          selectedModel,
+          userQuery,
+          temperature
+        );
+        console.log(
+          "Received reply from Gemini:",
+          gptReply ? gptReply.substring(0, 50) + "..." : "undefined"
+        );
+      } catch (geminiError) {
+        console.error("Gemini API Error:", geminiError);
+        throw new Error(
+          `Gemini API Error: ${geminiError.message || "Unknown error"}`
+        );
+      }
+    } else {
+      // Format for OpenAI and DeepSeek APIs
+      const apiEndpoint = `${config.baseURL}/v1/chat/completions`;
+      const body = {
+        model: selectedModel,
+        messages: messages,
+        temperature: temperature,
+      };
+
+      console.log(`Using API endpoint: ${apiEndpoint}`);
+
+      // Set up headers
+      const headers = {
         "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
+        Authorization: `Bearer ${apiKey}`,
+      };
 
-    const result = await response.json();
+      const response = await fetch(apiEndpoint, {
+        method: "POST",
+        headers: headers,
+        body: JSON.stringify(body),
+      });
 
-    if (!response.ok) {
-      throw new Error(result.error?.message || `API Error: ${response.status}`);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.error?.message || `API Error: ${response.status}`
+        );
+      }
+
+      gptReply = result.choices?.[0]?.message?.content || "[No response]";
     }
-
-    const gptReply = result.choices?.[0]?.message?.content || "[No response]";
 
     console.log(`🤖 ${config.provider.toUpperCase()} Reply:`, gptReply);
 
@@ -450,8 +599,51 @@ async function sendToGPT(text) {
     renderMathJax();
     return gptReply;
   } catch (err) {
-    console.error("GPT API Error:", err);
-    gptResponse.innerHTML = `<div class="error">Error: ${err.message}</div>`;
+    console.error("API Error:", err);
+
+    // Add more detailed error information for debugging
+    if (config.provider === "google") {
+      console.error("Gemini API Error Details:", {
+        error: err.toString(),
+        stack: err.stack,
+      });
+
+      // Show a more helpful error message to the user with a fallback option
+      gptResponse.innerHTML = `<div class="error">
+        <p>Error connecting to Google Gemini API: ${err.message}</p>
+        <p>Please check:</p>
+        <ul>
+          <li>Your API key is correct and starts with "AIza..."</li>
+          <li>You have enabled the Gemini API in your Google Cloud project</li>
+          <li>Your API key has the necessary permissions</li>
+        </ul>
+        <p><button id="fallback-to-gpt" class="fallback-button">Try with GPT-4o instead</button></p>
+      </div>`;
+
+      // Add event listener for the fallback button
+      setTimeout(() => {
+        const fallbackButton = document.getElementById("fallback-to-gpt");
+        if (fallbackButton) {
+          fallbackButton.addEventListener("click", async () => {
+            // Switch to GPT-4o and retry
+            await window.electronAPI.saveSelectedModel("gpt-4o");
+            window.apiSettingsModule.setCurrentModel("gpt-4o");
+            window.apiSettingsModule.showModelIndicator();
+            gptResponse.innerHTML =
+              '<div class="loading-text">Retrying with GPT-4o...</div>';
+            // Retry with GPT-4o
+            try {
+              await sendToGPT(text);
+            } catch (retryErr) {
+              console.error("Retry with GPT-4o failed:", retryErr);
+            }
+          });
+        }
+      }, 100);
+    } else {
+      gptResponse.innerHTML = `<div class="error">Error: ${err.message}</div>`;
+    }
+
     throw err;
   }
 }
@@ -475,7 +667,8 @@ function formatGptResponse(text) {
     // Line breaks
     .replace(/\n/g, "<br>");
 
-  return formatted;
+  // Wrap the entire response in a paragraph tag to ensure it gets the white color styling
+  return `<p class="response-text">${formatted}</p>`;
 }
 
 // Helper function to escape HTML

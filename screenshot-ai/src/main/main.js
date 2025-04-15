@@ -216,6 +216,9 @@ function createMainWindow(userPrefs) {
   // Load the HTML file
   mainWindow.loadFile(path.join(__dirname, "../renderer/index.html"));
 
+  // Open DevTools automatically
+  mainWindow.webContents.openDevTools();
+
   return mainWindow;
 }
 

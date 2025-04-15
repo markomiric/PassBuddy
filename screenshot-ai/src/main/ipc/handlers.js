@@ -52,6 +52,22 @@ function registerIpcHandlers(mainWindow, userPrefs) {
     return saveUserPreferences(userPrefs);
   });
 
+  // Get Gemini API key
+  ipcMain.handle("get-gemini-key", () => {
+    // First check if the user has set an API key in preferences
+    if (userPrefs.geminiApiKey && userPrefs.geminiApiKey.trim() !== "") {
+      return userPrefs.geminiApiKey;
+    }
+    // Fallback to the .env file
+    return process.env.GEMINI_API_KEY || "";
+  });
+
+  // Save Gemini API key
+  ipcMain.handle("save-gemini-key", (event, apiKey) => {
+    userPrefs.geminiApiKey = apiKey;
+    return saveUserPreferences(userPrefs);
+  });
+
   // Get selected model
   ipcMain.handle("get-selected-model", () => {
     return userPrefs.selectedModel || "gpt-4o";
@@ -63,22 +79,50 @@ function registerIpcHandlers(mainWindow, userPrefs) {
     return saveUserPreferences(userPrefs);
   });
 
+  // Get language setting
+  ipcMain.handle("get-language", () => {
+    return userPrefs.language || "en";
+  });
+
+  // Save language setting
+  ipcMain.handle("save-language", (event, language) => {
+    userPrefs.language = language;
+    return saveUserPreferences(userPrefs);
+  });
+
   // Get model configuration
   ipcMain.handle("get-model-config", () => {
-    return (
-      userPrefs.modelConfig || {
-        "gpt-4o": {
-          baseURL: "https://api.openai.com",
-          temperature: 0.3,
-          provider: "openai",
-        },
-        "deepseek-chat": {
-          baseURL: "https://api.deepseek.com",
-          temperature: 0.3,
-          provider: "deepseek",
-        },
-      }
+    // Default model configurations
+    const defaultModelConfig = {
+      "gpt-4o": {
+        baseURL: "https://api.openai.com",
+        temperature: 0.3,
+        provider: "openai",
+      },
+      "deepseek-chat": {
+        baseURL: "https://api.deepseek.com",
+        temperature: 0.3,
+        provider: "deepseek",
+      },
+      "gemini-2.0-flash": {
+        baseURL: "https://generativelanguage.googleapis.com",
+        temperature: 1.0, // Default temperature for Gemini 2.0 Flash is 1.0 (range 0.0-2.0)
+        provider: "google",
+        apiVersion: "v1", // API version for Gemini
+      },
+    };
+
+    // Merge with user preferences, ensuring all models are included
+    const modelConfig = userPrefs.modelConfig || {};
+    const mergedConfig = { ...defaultModelConfig, ...modelConfig };
+
+    // Log the model configuration for debugging
+    console.log(
+      "Sending model configuration to renderer:",
+      JSON.stringify(mergedConfig, null, 2)
     );
+
+    return mergedConfig;
   });
 
   // Get user preferences

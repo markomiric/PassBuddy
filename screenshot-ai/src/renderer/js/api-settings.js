@@ -56,8 +56,15 @@ async function showApiSettingsDialog(
     deepseekTab.textContent = "DeepSeek Chat";
     deepseekTab.dataset.model = "deepseek-chat";
 
+    const geminiTab = document.createElement("button");
+    geminiTab.className =
+      "api-key-tab" + (selectedModel === "gemini-2.0-flash" ? " active" : "");
+    geminiTab.textContent = "Gemini 2.0 Flash";
+    geminiTab.dataset.model = "gemini-2.0-flash";
+
     tabContainer.appendChild(openaiTab);
     tabContainer.appendChild(deepseekTab);
+    tabContainer.appendChild(geminiTab);
     dialog.appendChild(tabContainer);
 
     // Create content for OpenAI tab
@@ -161,9 +168,51 @@ async function showApiSettingsDialog(
 
     deepseekContent.appendChild(deepseekInputContainer);
 
-    // Add tab contents to dialog
+    // Create content for Gemini tab
+    const geminiContent = document.createElement("div");
+    geminiContent.className =
+      "api-key-tab-content" +
+      (selectedModel === "gemini-2.0-flash" ? " active" : "");
+    geminiContent.dataset.model = "gemini-2.0-flash";
+
+    const geminiDescription = document.createElement("p");
+    geminiDescription.innerHTML = `
+      Enter your Gemini API key to use Gemini 2.0 Flash.<br>
+      You can get one from <a href="#" id="open-gemini-link">https://aistudio.google.com/app/apikey</a>
+    `;
+    geminiContent.appendChild(geminiDescription);
+
+    // Add Gemini input field
+    const geminiInputContainer = document.createElement("div");
+    geminiInputContainer.className = "api-key-input-container";
+
+    const geminiInput = document.createElement("input");
+    geminiInput.type = "password";
+    geminiInput.className = "api-key-input";
+    geminiInput.placeholder = "AIza...";
+    geminiInput.value = window.geminiApiKey || "";
+    geminiInputContainer.appendChild(geminiInput);
+
+    // Add toggle visibility button for Gemini
+    const geminiToggleButton = document.createElement("button");
+    geminiToggleButton.className = "toggle-visibility-button";
+    geminiToggleButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+    geminiToggleButton.title = "Toggle visibility";
+    geminiToggleButton.addEventListener("click", () => {
+      if (geminiInput.type === "password") {
+        geminiInput.type = "text";
+        geminiToggleButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg><line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2"></line>`;
+      } else {
+        geminiInput.type = "password";
+        geminiToggleButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+      }
+    });
+    geminiInputContainer.appendChild(geminiToggleButton);
+    geminiContent.appendChild(geminiInputContainer);
+
     dialog.appendChild(openaiContent);
     dialog.appendChild(deepseekContent);
+    dialog.appendChild(geminiContent);
 
     // Add buttons
     const buttonContainer = document.createElement("div");
@@ -189,11 +238,13 @@ async function showApiSettingsDialog(
       // Get the API keys
       const openaiKey = openaiInput.value.trim();
       const deepseekKey = deepseekInput.value.trim();
+      const geminiKey = geminiInput.value.trim();
 
       document.body.removeChild(overlay);
       resolve({
         openaiKey,
         deepseekKey,
+        geminiKey,
         selectedModel,
       });
     });
@@ -456,8 +507,10 @@ async function showApiSettingsDialog(
     // Focus the input field of the active tab
     if (selectedModel === "gpt-4o") {
       openaiInput.focus();
-    } else {
+    } else if (selectedModel === "deepseek-chat") {
       deepseekInput.focus();
+    } else {
+      geminiInput.focus();
     }
 
     // Add event listener for the OpenAI link
@@ -482,6 +535,17 @@ async function showApiSettingsDialog(
         );
       });
 
+    // Add event listener for the Gemini link
+    document
+      .getElementById("open-gemini-link")
+      .addEventListener("click", (e) => {
+        e.preventDefault();
+        window.electronAPI.windowControl(
+          "open-url",
+          "https://aistudio.google.com/app/apikey"
+        );
+      });
+
     // Add event listener for Enter key
     openaiInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
@@ -490,6 +554,12 @@ async function showApiSettingsDialog(
     });
 
     deepseekInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        saveButton.click();
+      }
+    });
+
+    geminiInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         saveButton.click();
       }
@@ -536,7 +606,12 @@ function showModelIndicator(contentType = null, temperature = null) {
 
   // Add the model name
   const isDeepSeek = getCurrentModel() === "deepseek-chat";
-  const modelName = isDeepSeek ? "DeepSeek Chat" : "OpenAI GPT-4o";
+  const isGemini = getCurrentModel() === "gemini-2.0-flash";
+  const modelName = isDeepSeek
+    ? "DeepSeek Chat"
+    : isGemini
+    ? "Gemini 2.0 Flash"
+    : "OpenAI GPT-4o";
 
   let indicatorContent = `
     <div class="indicator-content">

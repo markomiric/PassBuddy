@@ -235,17 +235,16 @@ h3 {
 .instructions {
   margin: var(--space-6) 0;
   padding: var(--space-4) var(--space-6);
-  background-color: rgba(0, 0, 0, 0.7);
-  border-left: 4px solid var(--info-border);
+  background-color: var(--card-bg);
+  border-left: 4px solid var(--primary-color);
   border-radius: var(--radius-md);
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
   font-size: 0.95rem;
   position: relative;
-  color: white;
-  -webkit-backdrop-filter: blur(5px);
-  backdrop-filter: blur(5px);
+  color: var(--text-color);
+  box-shadow: 0 4px 12px var(--shadow-color);
 }
 
 .instructions p {
@@ -258,15 +257,23 @@ h3 {
   align-items: center;
   gap: var(--space-2);
   font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--primary-color);
 }
 
 .hotkey-section {
-  margin: var(--space-2) 0;
+  margin: var(--space-3) 0;
+  background-color: var(--background-color);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
 }
 
 .hotkey-section h3 {
   margin: var(--space-2) 0;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--text-color);
 }
@@ -284,13 +291,25 @@ h3 {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-1) 0;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.hotkey-list li:last-child {
+  border-bottom: none;
 }
 
 .instructions-close {
   position: absolute;
   top: var(--space-4);
   right: var(--space-4);
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  box-shadow: 0 2px 4px var(--shadow-color);
 }
 
 .hidden {
@@ -360,13 +379,14 @@ h3 {
 
 .shortcut {
   font-weight: 600;
-  background-color: var(--card-bg);
+  background-color: var(--primary-light);
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-sm);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--primary-color);
   font-family: var(--font-mono);
   font-size: 0.85rem;
   box-shadow: 0 1px 2px var(--shadow-color);
+  color: var(--primary-color);
 }
 
 .content-area {
@@ -376,7 +396,7 @@ h3 {
   height: auto; /* Allow content to determine height */
   overflow-y: visible; /* Remove scrolling */
   line-height: 1.6;
-  color: var(--text-color);
+  color: white;
 }
 
 #gpt-prompt-container .content-area {
@@ -392,6 +412,7 @@ h3 {
   box-shadow: none; /* Remove shadow */
   font-size: 1rem;
   line-height: 1.7;
+  color: white !important; /* Force white text */
 }
 
 /* Make only the text visible, hide all other elements */
@@ -401,8 +422,33 @@ h3 {
   box-shadow: none !important;
 }
 
+/* Fallback button for Gemini errors */
+.fallback-button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-top: var(--space-3);
+  transition: all var(--transition-fast);
+}
+
+.fallback-button:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
 /* Ensure text is clearly visible with text shadow for better readability on any background */
-#gpt-response p, #gpt-response span, #gpt-response div, #gpt-response li, #gpt-response code, #gpt-response pre {
+#gpt-response p, #gpt-response span, #gpt-response div, #gpt-response li, #gpt-response code, #gpt-response pre, .response-text {
+  color: white !important;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Additional specific styling for response text */
+.response-text {
   color: white !important;
   text-shadow: 0 0 3px rgba(0, 0, 0, 0.8) !important;
 }

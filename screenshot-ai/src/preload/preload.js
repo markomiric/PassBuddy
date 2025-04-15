@@ -16,6 +16,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   saveOpenAIKey: (apiKey) => ipcRenderer.invoke("save-openai-key", apiKey),
   getDeepSeekKey: () => ipcRenderer.invoke("get-deepseek-key"),
   saveDeepSeekKey: (apiKey) => ipcRenderer.invoke("save-deepseek-key", apiKey),
+  getGeminiKey: () => ipcRenderer.invoke("get-gemini-key"),
+  saveGeminiKey: (apiKey) => ipcRenderer.invoke("save-gemini-key", apiKey),
 
   // Model selection
   getSelectedModel: () => ipcRenderer.invoke("get-selected-model"),
@@ -24,6 +26,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
   getModelConfig: () => ipcRenderer.invoke("get-model-config"),
   onShowApiKeyDialog: (callback) =>
     ipcRenderer.on("show-api-key-dialog", callback),
+
+  // Language settings
+  getLanguage: () => ipcRenderer.invoke("get-language"),
+  saveLanguage: (language) => ipcRenderer.invoke("save-language", language),
 
   // User preferences handling
   getUserPreferences: () => ipcRenderer.invoke("get-user-preferences"),
