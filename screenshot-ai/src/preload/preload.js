@@ -64,4 +64,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   // File operations
   openFileDialog: () => ipcRenderer.invoke("open-file-dialog"),
+
+  // Clipboard monitoring
+  onClipboardText: (callback) => ipcRenderer.on("clipboard-text", callback),
 });

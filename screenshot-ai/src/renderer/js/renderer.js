@@ -146,6 +146,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.log("Reset application event received");
     window.uiModule.resetApplication();
   });
+
+  // Listen for clipboard text events
+  window.electronAPI.onClipboardText((event, text) => {
+    console.log("Clipboard text received:", text);
+    const ocrTextElement = document.getElementById("ocr-text");
+    if (ocrTextElement) {
+      ocrTextElement.value = text;
+    }
+    const gptResponse = document.getElementById("gpt-response");
+    if (gptResponse) {
+      gptResponse.innerHTML =
+        "<div class='loading-text'>Processing clipboard text...</div>";
+    }
+    // Send the copied text to GPT using existing OCR sendToGPT function
+    window.ocrModule.sendToGPT(text);
+    // Notify user
+    window.uiModule.showNotification("Clipboard text processed", 2000);
+  });
 });
 
 // Set up file upload functionality
@@ -175,15 +193,15 @@ function setupFileUpload() {
           }
 
           // Set the file upload prompt
-          const fileUploadPrompt = `You are an advanced AI assistant designed to perform at the highest level on academic and professional tests. You must answer user questions as accurately and thoroughly as possible, using both your own knowledge and the content provided in an uploaded file. When relevant, ground your answers in the file, but feel free to enhance them with your broader knowledge.
+          const fileUploadPrompt = `Ti si napredni AI asistent osmišljen za postizanje najviših rezultata na akademskim i stručnim testovima. Na korisnička pitanja moraš odgovarati što točnije i temeljitije, koristeći i vlastito znanje i sadržaj iz priložene datoteke. Kada je to primjenjivo, temelji svoj odgovor na sadržaju datoteke, ali slobodno ga nadopuni vlastitim širim znanjem.
+Prilikom odgovaranja:
+- Daj prednost točnosti i jasnoći.
+- Citiraj sadržaj datoteke ako izravno podupire tvoj odgovor.
+- Ako sadržaj datoteke proturječi poznatim činjenicama, objasni tu razliku.
+- Ako datoteka nije relevantna za pitanje, oslanjaj se na vlastito znanje.
 
-When answering:
-- Prioritize accuracy and clarity.
-- Cite the file content if it directly supports your answer.
-- If the file content contradicts known facts, explain the discrepancy.
-- If the file is unrelated to the question, fall back on your own knowledge.
-
-Always aim to provide the most complete and insightful answer possible.`;
+Uvijek nastoj dati što potpuniji i dublji odgovor.
+Odgovaraj uvijek na hrvatskom jeziku. Kombiniraj znanje iz datoteke i vlastito znanje za najbolji odgovor.`;
 
           // Update the prompt textarea
           const promptTextarea = document.getElementById("gpt-prompt");

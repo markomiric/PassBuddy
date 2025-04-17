@@ -393,35 +393,22 @@ async function sendToGPT(text) {
     {
       role: "system",
       content:
-        userPrompt +
-        (fileContext
-          ? `\n\nYou have access to the following file as context: ${fileContext.fileName}\n` +
-            "Use this file as reference when answering questions or processing text."
-          : ""),
+        "Odgovaraj uvijek na hrvatskom jeziku. Budi kratak, jasan, strukturiran i pametan u odgovorima. Piši kao stručnjak, ali prirodno i ljudski. Ako postoji datoteka, koristi je kao kontekst, ali koristi i vlastito znanje za najbolji odgovor.",
     },
   ];
 
-  // Add file context as a separate message if available
+  // Add user message, structured naturally
   if (fileContext) {
     messages.push({
       role: "user",
-      content: `Here is the content of the file ${fileContext.fileName} that I want you to use as context:\n\n${fileContext.fileContent}`,
+      content: `Pročitaj sadržaj datoteke \"${fileContext.fileName}\":\n${fileContext.fileContent}\n\nMoje pitanje: ${text}`,
     });
-
-    // Add assistant acknowledgment
+  } else {
     messages.push({
-      role: "assistant",
-      content: `I've received the file ${fileContext.fileName} and will use it as context for our conversation.`,
+      role: "user",
+      content: text,
     });
   }
-
-  // Add the current text as the final user message
-  messages.push({
-    role: "user",
-    content: fileContext
-      ? `Based on the file I shared earlier, please process the following text:\n\n${text}`
-      : text,
-  });
 
   // Get model configuration
   const modelConfig = await window.electronAPI.getModelConfig();

@@ -122,12 +122,12 @@ async function processFileWithGPT() {
       // Create a container with both file content and loading indicator
       gptResponse.innerHTML = `
         <div class="file-content-result">
-          <h3>File content: ${currentFileName}</h3>
+          <h3>Sadržaj datoteke: ${currentFileName}</h3>
           <div class="file-content-text">${escapeHtml(currentFileContent)}</div>
         </div>
         <div class='loading-text'>
           <div class="loading-spinner"></div>
-          Analyzing file content...
+          Analiziram sadržaj datoteke...
         </div>
       `;
 
@@ -200,9 +200,9 @@ window.fileModule = {
   toggleFileContextActive,
   // Getter for other modules to check if context is active
   isContextActive: () => isFileContextActive && currentFileContent.length > 0,
-  // Getter for other modules to get the context
+  // Getter for other modules to get the context - always return file content when available
   getContext: () =>
-    isFileContextActive && currentFileContent.length > 0
+    currentFileContent.length > 0
       ? { fileName: currentFileName, fileContent: currentFileContent }
       : null,
 };

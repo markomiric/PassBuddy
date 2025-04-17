@@ -7,6 +7,7 @@ const {
   BrowserWindow,
   Menu,
   session,
+  clipboard, // add clipboard import
 } = require("electron");
 const path = require("path");
 
@@ -217,9 +218,25 @@ function createMainWindow(userPrefs) {
   mainWindow.loadFile(path.join(__dirname, "../renderer/index.html"));
 
   // Open DevTools automatically
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 
   return mainWindow;
+}
+
+/**
+ * Monitor clipboard for changes and send updates to renderer process
+ */
+async function startClipboardMonitoring() {
+  let lastText = null;
+  setInterval(() => {
+    const text = clipboard.readText().trim();
+    if (text && text !== lastText) {
+      lastText = text;
+      if (mainWindow && mainWindow.webContents) {
+        mainWindow.webContents.send("clipboard-text", text);
+      }
+    }
+  }, 1000);
 }
 
 /**
@@ -227,11 +244,18 @@ function createMainWindow(userPrefs) {
  * @param {Object} userPrefs - User preferences
  */
 function registerGlobalShortcuts(userPrefs) {
-  // Register screenshot shortcut
-  globalShortcut.register(userPrefs.hotkey, () => takeScreenshot(mainWindow));
+  // Register screenshot shortcut - explicitly using Control+Shift+S
+  globalShortcut.register("CommandOrControl+Shift+S", () =>
+    takeScreenshot(mainWindow)
+  );
+
+  // Also register the user's preferred hotkey if it's different
+  if (userPrefs.hotkey && userPrefs.hotkey !== "CommandOrControl+Shift+S") {
+    globalShortcut.register(userPrefs.hotkey, () => takeScreenshot(mainWindow));
+  }
 
   // Register window visibility shortcut
-  globalShortcut.register("CommandOrControl+Alt+S", () => {
+  globalShortcut.register("CommandOrControl+S", () => {
     if (mainWindow) {
       if (mainWindow.isVisible()) {
         // Hide window if it's currently visible
@@ -245,19 +269,19 @@ function registerGlobalShortcuts(userPrefs) {
   });
 
   // Register voice recording shortcut
-  globalShortcut.register("Control+Shift+M", () => {
+  globalShortcut.register("Control+R", () => {
     if (mainWindow) {
       // Toggle recording state
       mainWindow.webContents.send("toggle-voice-recording");
-      console.log("Voice recording toggled via hotkey Control+Shift+M");
+      console.log("Voice recording toggled via hotkey Control+R");
     }
   });
 
   // Register application reset shortcut (Ctrl+Alt+R)
-  globalShortcut.register("Control+Alt+R", () => {
+  globalShortcut.register("Control+Shift+R", () => {
     if (mainWindow) {
       mainWindow.webContents.send("reset-application");
-      console.log("Application reset triggered via hotkey Control+Alt+R");
+      console.log("Application reset triggered via hotkey Control+Shift+R");
     }
   });
 }
@@ -287,6 +311,9 @@ app.whenReady().then(() => {
 
   // Initialize WebSocket service
   initWebSocketService(mainWindow);
+
+  // Start clipboard monitoring
+  startClipboardMonitoring();
 
   // Register IPC handlers
   registerIpcHandlers(mainWindow, userPrefs);
