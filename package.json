@@ -1,0 +1,23 @@
+{
+  "private": true,
+  "scripts": {
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "eslint": "^9.21.0",
+    "prettier": "^2.8.0",
+    "husky": "^8.0.0",
+    "lint-staged": "^14.0.0"
+  },
+  "lint-staged": {
+    "*.[jt]s?(x)": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{css,md,json}": [
+      "prettier --write"
+    ]
+  }
+}

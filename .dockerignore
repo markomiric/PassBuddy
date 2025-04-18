@@ -1,9 +1,45 @@
-node_modules
-npm-debug.log
-Dockerfile
-.dockerignore
-.git
+# Ignore node modules
+node_modules/
+
+# Logs and temporary files
+logs/
+*.log
+*.tmp
+*.temp
+
+# Git and Docker files
+.git/
 .gitignore
-README.md
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Environment variables
 .env
 .env.*
+
+# Build outputs
+dist/
+dist-ssr/
+*.local
+
+# Frontend build artifacts
+frontend/dist/
+
+# Server and desktop assets
+server/assets/
+
+# Ignore IDE/editor settings
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Other
+*.bak
+*.seed
+
+# Public assets
+frontend/public/
