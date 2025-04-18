@@ -21,6 +21,11 @@ const { handleMessage } = require("./handlers");
 
 // Create HTTP server for WebSocket to attach to
 const server = http.createServer((req, res) => {
+  if (req.url === '/health') {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('ok');
+    return;
+  }
   res.writeHead(200, { "Content-Type": "text/plain" });
   res.end("WebSocket Relay Server\n");
 });

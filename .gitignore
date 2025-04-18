@@ -70,12 +70,6 @@ yarn.lock
 # Windows specific files
 Thumbs.db
 
-# Docker specific files
-**/Dockerfile
-**/docker-compose.yml
-**/nginx.conf
-docker-compose.override.yml
-
 # Build output
 dist/
 dist-ssr/

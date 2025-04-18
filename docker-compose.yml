@@ -1,0 +1,53 @@
+services:
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:${PORT}/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - appnet
+    ports:
+      - '3030:3030'
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    depends_on:
+      - server
+    volumes:
+      - frontend_dist:/app/dist
+    networks:
+      - appnet
+
+  nginx:
+    image: nginx:stable-alpine
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - frontend_dist:/usr/share/nginx/html:ro
+    ports:
+      - '80:80'
+    depends_on:
+      - frontend
+      - server
+    networks:
+      - appnet
+
+volumes:
+  frontend_dist:
+    external: false
+
+networks:
+  appnet:
+    driver: bridge

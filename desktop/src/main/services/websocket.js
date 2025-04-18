@@ -3,11 +3,11 @@
  *
  * Handles WebSocket connections to the relay server
  */
-const WebSocket = require("ws");
-const { takeScreenshot } = require("./screenshot");
+const WebSocket = require('ws');
+const { takeScreenshot } = require('./screenshot');
 
 // Configuration
-const RELAY_SERVER_URL = process.env.RELAY_SERVER_URL || "ws://localhost:3001";
+const RELAY_SERVER_URL = process.env.RELAY_SERVER_URL || 'ws://localhost:3030';
 
 let wsClient; // WebSocket client connection to relay server
 let mainWindowRef; // Reference to the main window
@@ -34,41 +34,49 @@ function connectToRelayServer() {
 
   // Send connecting status to renderer immediately
   if (mainWindowRef?.webContents) {
-    mainWindowRef.webContents.send("connection-status-change", "connecting");
+    mainWindowRef.webContents.send('connection-status-change', 'connecting');
   }
 
   wsClient = new WebSocket(`${RELAY_SERVER_URL}?clientType=desktop`);
 
+  // Respond to server heartbeat pings
+  wsClient.on('ping', () => {
+    wsClient.pong();
+  });
+  wsClient.on('pong', () => {
+    // Received pong from server (optional heartbeat acknowledgment)
+  });
+
   // Set up WebSocket client events
-  wsClient.on("open", () => {
-    console.log("🟢 Connected to WebSocket relay server");
+  wsClient.on('open', () => {
+    console.log('🟢 Connected to WebSocket relay server');
 
     // Start heartbeat
     startHeartbeat();
 
     // Update renderer about connection status
     if (mainWindowRef?.webContents) {
-      mainWindowRef.webContents.send("connection-status-change", "connected");
+      mainWindowRef.webContents.send('connection-status-change', 'connected');
     }
   });
 
-  wsClient.on("message", (message) => {
+  wsClient.on('message', (message) => {
     try {
       const data = JSON.parse(message.toString());
       handleMessage(data);
     } catch (err) {
-      console.error("❌ Error handling message:", err);
+      console.error('❌ Error handling message:', err);
     }
   });
 
-  wsClient.on("close", () => {
-    console.log("🔴 Disconnected from WebSocket relay server");
+  wsClient.on('close', () => {
+    console.log('🔴 Disconnected from WebSocket relay server');
 
     // Update renderer about connection status
     if (mainWindowRef?.webContents) {
       mainWindowRef.webContents.send(
-        "connection-status-change",
-        "disconnected"
+        'connection-status-change',
+        'disconnected'
       );
     }
 
@@ -76,14 +84,14 @@ function connectToRelayServer() {
     setTimeout(connectToRelayServer, 5000);
   });
 
-  wsClient.on("error", (error) => {
-    console.error("❌ WebSocket error:", error);
+  wsClient.on('error', (error) => {
+    console.error('❌ WebSocket error:', error);
 
     // Update renderer about connection status
     if (mainWindowRef?.webContents) {
       mainWindowRef.webContents.send(
-        "connection-status-change",
-        "disconnected"
+        'connection-status-change',
+        'disconnected'
       );
     }
   });
@@ -94,20 +102,20 @@ function connectToRelayServer() {
  * @param {Object} message - The message to handle
  */
 function handleMessage(message) {
-  console.log("📥 Received message:", message.type);
+  console.log('📥 Received message:', message.type);
 
   switch (message.type) {
-    case "pong":
+    case 'pong':
       // Heartbeat response
       break;
 
-    case "screenshot_request":
+    case 'screenshot_request':
       // Handle screenshot request
       takeScreenshot(mainWindowRef);
       break;
 
     default:
-      console.log("📨 Unhandled message type:", message.type);
+      console.log('📨 Unhandled message type:', message.type);
   }
 }
 
@@ -120,7 +128,7 @@ function startHeartbeat() {
     if (wsClient && wsClient.readyState === WebSocket.OPEN) {
       wsClient.send(
         JSON.stringify({
-          type: "ping",
+          type: 'ping',
           timestamp: new Date().toISOString(),
         })
       );
@@ -148,7 +156,7 @@ function sendToRelayServer(message) {
     );
     return true;
   } else {
-    console.warn("⚠️ Cannot send message - WebSocket not connected");
+    console.warn('⚠️ Cannot send message - WebSocket not connected');
     return false;
   }
 }

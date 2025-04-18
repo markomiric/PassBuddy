@@ -20,10 +20,8 @@ export function useWebSocket() {
     setLoading(true);
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const host =
-      window.location.hostname !== "localhost"
-        ? `${protocol}//${window.location.hostname}:3030`
-        : "ws://localhost:3030";
+    // Use configured WebSocket URL or default to same-host /ws
+    const host = import.meta.env.VITE_WS_URL || `${protocol}//${window.location.host}/ws`;
     const socket = new WebSocket(`${host}?clientType=browser`);
     socketRef.current = socket;
 
